@@ -1,0 +1,21 @@
+{
+  "name": "kinectsdk2",
+  "version": "2.0.1409",
+  "description": [
+    "Microsoft Kinect for Windows SDK version 2.0." 
+  ],
+  "homepage": "https://www.microsoft.com/en-us/download/details.aspx?id=44561",
+  "license": null,
+  "supports": "windows & !uwp & !mingw & (x86 | x64)",
+  "features": {
+    "face": {
+      "description": "Support for Kinect Face and HD Face APIs."
+    },
+    "fusion": {
+      "description": "Support for the Kinect Fusion 3D reconstruction API."
+    },
+    "vgb": {
+      "description": "Visual Gesture Builder (VGB) runtime."
+    }
+  }
+}

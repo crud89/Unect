@@ -1,0 +1,13 @@
+{
+  "name": "unect",
+  "version-string": "1.0.0.0",
+  "maintainers": [
+    "Carsten Rudolph <18394207+crud89@users.noreply.github.com>"
+  ],
+  "description": "A modern Kinect v2 integration for the Unity game engine.",
+  "license": "MIT",
+  "supports": "windows & !uwp & !mingw & (x86 | x64)",
+  "dependencies": [
+    "kinectsdk2"
+  ]
+}

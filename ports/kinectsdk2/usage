@@ -1,0 +1,12 @@
+kinectsdk2 provides CMake targets:
+
+    find_package(kinectsdk2 CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE unofficial::kinectsdk2::kinectsdk2)
+
+    # Optional features:
+    #   unofficial::kinectsdk2::face
+    #   unofficial::kinectsdk2::fusion
+    #   unofficial::kinectsdk2::vgb
+
+    # face/vgb also need their data folders beside the .exe. If those features aren't installed, this is a no-op.
+    kinectsdk2_deploy_data(main)
