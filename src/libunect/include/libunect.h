@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 #ifndef NDEBUG
+
     /// <summary>
     /// Stores the ABI version (used during development to check if a library should be reloaded).
     /// </summary>
@@ -24,9 +25,10 @@ extern "C" {
     /// Returns the current ABI version.
     /// </summary>
     /// <returns>The current ABI version.</returns>
-    static LIBUNECT_EXPORT int32_t UNECT_CALL Unect_GetAbiVersion() {
+    constexpr LIBUNECT_EXPORT int32_t UNECT_CALL Unect_GetAbiVersion() {
         return UNECT_ABI_VERSION;
     }
+
 #endif
 
 #pragma region "Enumerations"
@@ -34,7 +36,7 @@ extern "C" {
     /// <summary>
     /// A collection of valid error codes.
     /// </summary>
-    typedef enum UnectResult {
+    typedef enum UnectResult : int32_t {
 
         /// <summary>
         /// No error occurred.
@@ -57,7 +59,7 @@ extern "C" {
         UNECT_E_INVALID_ARG         = -2,
 
         /// <summary>
-        /// An handle has outlived its generation.
+        /// An handle has outlived its generation/epoch.
         /// </summary>
         UNECT_E_STALE_SESSION       = -3,
 
@@ -94,14 +96,19 @@ extern "C" {
         /// <summary>
         /// The requested operation is unsupported.
         /// </summary>
-        UNECT_E_UNSUPPORTED         = -10
+        UNECT_E_UNSUPPORTED         = -10,
+
+        /// <summary>
+        /// The requested operation is currently not implemented.
+        /// </summary>
+        UNECT_E_NOT_IMPLEMENTED     = -11
 
     } UnectResult;
 
     /// <summary>
     /// Represents a type of a data stream.
     /// </summary>
-    typedef enum UnectStreamType {
+    typedef enum UnectStreamType : uint32_t {
 
         /// <summary>
         /// Corresponds to no data stream.
@@ -148,7 +155,7 @@ extern "C" {
     /// <summary>
     /// Maps indices to individual streams.
     /// </summary>
-    typedef enum UnectStreamIndex {
+    typedef enum UnectStreamIndex : int32_t {
 
         /// <summary>
         /// Corresponds to the index of the depth image stream.
@@ -184,12 +191,13 @@ extern "C" {
         /// Stores the number of available streams.
         /// </summary>
         UNECT_SI_COUNT
+
     } UnectStreamIndex;
 
     /// <summary>
     /// Represents supported color formats.
     /// </summary>
-    typedef enum UnectColorFormat {
+    typedef enum UnectColorFormat : int32_t {
 
         /// <summary>
         /// Outputs colors in BGRA order with 32 bit depth.
@@ -207,6 +215,190 @@ extern "C" {
         UNECT_COLOR_YUY2                = 2
 
     } UnectColorFormat;
+
+    /// <summary>
+    /// Represents the states of a sensor.
+    /// </summary>
+    typedef enum UnectSensorState : uint32_t {
+
+        /// <summary>
+        /// The sensor is currently closed.
+        /// </summary>
+        UNECT_SENSOR_CLOSED = 0, 
+
+        /// <summary>
+        /// The sensor is currently opening.
+        /// </summary>
+        UNECT_SENSOR_OPENING, 
+
+        /// <summary>
+        /// The sensor is available.
+        /// </summary>
+        UNECT_SENSOR_AVAILABLE, 
+
+        /// <summary>
+        /// The sensor is not available.
+        /// </summary>
+        UNECT_SENSOR_UNAVAILABLE
+
+    } UnectSensorState;
+
+#pragma endregion
+
+#pragma region "Session"
+
+    /// <summary>
+    /// The type used to identify a session.
+    /// </summary>
+    typedef uint64_t UnectSessionHandle;
+
+    /// <summary>
+    /// Represents an invalid session.
+    /// </summary>
+    constexpr static UnectSessionHandle UNECT_INVALID_SESSION_HANDLE = 0ull;
+
+    /// <summary>
+    /// Represents flags that control the session behavior.
+    /// </summary>
+    typedef enum UnectSessionFlags : uint32_t {
+        
+        /// <summary>
+        /// Corresponds to a default session behavior.
+        /// </summary>
+        UNECT_SESSION_NONE = 0,
+        
+        /// <summary>
+        /// Keeps the session alive, even after all references are released through <see cref="UnectReleaseSession" />.
+        /// </summary>
+        UNECT_SESSION_KEEP_ALIVE = 1 << 0
+
+    } UnectSessionFlags;
+
+    /// <summary>
+    /// Describes a session.
+    /// </summary>
+    typedef struct UnectSessionDesc {
+        
+        /// <summary>
+        /// Stores a mask of available streams.
+        /// </summary>
+        UnectStreamType streams{ UNECT_STREAM_ALL };
+        
+        /// <summary>
+        /// Stores the format of the color stream. 
+        /// </summary>
+        UnectColorFormat colorFormat{ UNECT_COLOR_YUY2 };
+        
+        /// <summary>
+        /// Stores the number of buffers used by the session. Must be a value in range `[2..8]`.
+        /// </summary>
+        int32_t bufferCount{ 3 };
+        
+        /// <summary>
+        /// Stores the session flags that control its behavior.
+        /// </summary>
+        UnectSessionFlags flags{ UNECT_SESSION_NONE };
+
+    } UnectSessionDesc;
+
+    /// <summary>
+    /// Acquires a new session handle.
+    /// </summary>
+    /// <remarks>
+    /// Repeated calls with a compatible <paramref name="sessionDesc" /> return the same session pointer. If a subsequent call asks for additional streams, the underlying 
+    /// session will be extended accordingly.
+    /// 
+    /// Sessions must be released by calling <see cref="Unect_ReleaseSession" />.
+    /// </remarks>
+    /// <param name="sessionDesc">The session descriptor used to determine the session state.</param>
+    /// <param name="session">The pointer to the session handle.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetSession(const UnectSessionDesc* sessionDesc, UnectSessionHandle* session);
+
+    /// <summary>
+    /// Releases a session handle.
+    /// </summary>
+    /// <param name="session">The session handle to release.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_ReleaseSession(UnectSessionHandle session);
+
+    /// <summary>
+    /// Verifies if a session is valid.
+    /// </summary>
+    /// <param name="session">The session to verify.</param>
+    /// <returns>`true` if the session is valid and `false` otherwise.</returns>
+    LIBUNECT_EXPORT bool UNECT_CALL Unect_SessionValid(UnectSessionHandle session);
+
+    /// <summary>
+    /// Unconditionally shuts down the library.
+    /// </summary>
+    LIBUNECT_EXPORT void UNECT_CALL Unect_Shutdown();
+
+    /// <summary>
+    /// Returns the epoch of the library runtime.
+    /// </summary>
+    /// <remarks>
+    /// An epoch is incremented whenever all sessions are released. This signals to callers that resources to this library should be rebound.
+    /// </remarks>
+    /// <returns>The epoch of the library runtime.</returns>
+    LIBUNECT_EXPORT uint32_t UNECT_CALL Unect_Epoch();
+
+    /// <summary>
+    /// Retrieves the state of the connected sensor.
+    /// </summary>
+    /// <param name="session">The session handle on which to query for the sensor.</param>
+    /// <param name="state">A pointer to the state variable.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetSensorState(UnectSessionHandle session, UnectSensorState* state);
+
+#pragma endregion
+
+#pragma region "Diagnostics"
+
+    /// <summary>
+    /// Stores diagnostics reported from the library.
+    /// </summary>
+    typedef struct UnectStreamStats {
+
+        /// <summary>
+        /// The number of arrived frames.
+        /// </summary>
+        uint64_t framesArrived;
+
+        /// <summary>
+        /// The number of dropped frames.
+        /// </summary>
+        uint64_t framesDropped;
+
+        /// <summary>
+        /// The frame-rate in frames per second.
+        /// </summary>
+        float framerate;
+
+        /// <summary>
+        /// The last frame's latency in milliseconds.
+        /// </summary>
+        float lastLatency;
+
+    } UnectStreamStats;
+
+    /// <summary>
+    /// Returns the current diagnostics for a particular stream.
+    /// </summary>
+    /// <param name="session">The session that contains the stream.</param>
+    /// <param name="stream">The stream about which to obtain the diagnostics.</param>
+    /// <param name="stats">A pointer to the diagnostics container.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetStreamStats(UnectSessionHandle session, UnectStreamIndex stream, UnectStreamStats* stats);
+
+    /// <summary>
+    /// Reports the cached log messages.
+    /// </summary>
+    /// <param name="buffer">The buffer into which to copy the log messages.</param>
+    /// <param name="capacity">The capacity of <paramref name="buffer"/>.</param>
+    /// <param name="outBytes">The number of bytes actually copied into <paramref name="buffer" />.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetLog(char* buffer, int32_t capacity, int32_t* outBytes);
 
 #pragma endregion
 

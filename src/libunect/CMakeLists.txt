@@ -7,7 +7,13 @@ find_package(kinectsdk2 CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED 
     "include/libunect.h"
-	"main.cxx"
+
+    "kinect.h"
+    "helpers.hpp"
+    "internal.h"
+    "registry.h"
+    "registry.cxx"
+	"libunect.cxx"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE unofficial::kinectsdk2::kinectsdk2)
