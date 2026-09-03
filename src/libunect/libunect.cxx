@@ -1,6 +1,6 @@
 #include <libunect.h>
 
-#include "kinect.h"
+#include "wrapper/kinect.h"
 #include "helpers.hpp"
 #include "registry.h"
 #include "internal.h"
@@ -13,6 +13,8 @@ namespace Internal {
     std::atomic<int32_t> g_sensorState{ UNECT_SENSOR_CLOSED }; 
 
     std::atomic<uint32_t> g_epoch{ 0u };
+
+    std::atomic<uint32_t> g_mappingGeneration{ 0 };
 
 }
 
@@ -37,7 +39,7 @@ UnectResult Unect_GetSession(const UnectSessionDesc* sessionDesc, UnectSessionHa
     if (!ValidColorFormat(sessionDesc->colorFormat))
         return UNECT_E_INVALID_ARG;
 
-    if (sessionDesc->bufferCount < 2 || sessionDesc->bufferCount > 8)
+    if (sessionDesc->bufferCount < UNECT_MIN_BUFFERS || sessionDesc->bufferCount > UNECT_MAX_BUFFERS)
         return UNECT_E_INVALID_ARG;
 
     // Lock the registry.

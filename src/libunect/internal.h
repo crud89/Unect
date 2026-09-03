@@ -1,7 +1,5 @@
 #pragma once
 
-#include <kinect.h>
-
 #include <atomic>
 
 namespace Internal {
@@ -15,5 +13,10 @@ namespace Internal {
     /// The current epoch of the library runtime.
     /// </summary>
     extern std::atomic<uint32_t> g_epoch;
+
+    /// <summary>
+    /// Stores the current mapping generation.
+    /// </summary>
+    extern std::atomic<uint32_t> g_mappingGeneration;
 
 }

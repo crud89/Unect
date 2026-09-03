@@ -275,6 +275,16 @@ extern "C" {
     } UnectSessionFlags;
 
     /// <summary>
+    /// The minimum number of back buffers.
+    /// </summary>
+    constexpr uint32_t UNECT_MIN_BUFFERS = 2;
+
+    /// <summary>
+    /// The maximum number of back buffers.
+    /// </summary>
+    constexpr uint32_t UNECT_MAX_BUFFERS = 8;
+
+    /// <summary>
     /// Describes a session.
     /// </summary>
     typedef struct UnectSessionDesc {
@@ -290,8 +300,10 @@ extern "C" {
         UnectColorFormat colorFormat{ UNECT_COLOR_YUY2 };
         
         /// <summary>
-        /// Stores the number of buffers used by the session. Must be a value in range `[2..8]`.
+        /// Stores the number of buffers used by the session.
         /// </summary>
+        /// <seealso cref="UNECT_MIN_BUFFERS" />
+        /// <seealso cref="UNECT_MAX_BUFFERS" />
         int32_t bufferCount{ 3 };
         
         /// <summary>

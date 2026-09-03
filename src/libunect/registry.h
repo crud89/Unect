@@ -2,7 +2,7 @@
 
 #include <libunect.h>
 
-#include "kinect.h"
+#include "wrapper/kinect.h"
 
 #include <mutex>
 #include <unordered_set>
