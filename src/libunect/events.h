@@ -37,6 +37,33 @@ typedef enum UnectEventType : uint32_t {
 } UnectEventType;
 
 /// <summary>
+/// Represents a single event in the event stream.
+/// </summary>
+struct UnectEvent final {
+
+    /// <summary>
+    /// Stores the event type.
+    /// </summary>
+    UnectEventType type{};
+
+    /// <summary>
+    /// Stores the first event parameter.
+    /// </summary>
+    int32_t param1{};
+
+    /// <summary>
+    /// Stores the second event parameter.
+    /// </summary>
+    uint64_t param2{};
+
+    /// <summary>
+    /// Stores the timestamp of the event.
+    /// </summary>
+    int64_t timestamp{};
+
+};
+
+/// <summary>
 /// Pushes a new event to the events cache.
 /// </summary>
 /// <param name="type"></param>
@@ -52,9 +79,9 @@ void ResetEvents();
 /// <summary>
 /// Returns all cached events.
 /// </summary>
-/// <param name="eventBuffer">A pointer to the event buffer.</param>
+/// <param name="events">A pointer to the event buffer.</param>
 /// <param name="capacity">The capacity of the event buffer.</param>
 /// <param name="eventCount">The number of events actually written to the event buffer.</param>
 /// <param name="dropCount">The number of events dropped from the cache since the last call.</param>
 /// <returns>The return code of the function.</returns>
-UnectResult PopEvents(UnectEventType* eventBuffer, int32_t capacity, int32_t* eventCount, int32_t* dropCount);
+UnectResult PopEvents(UnectEvent* events, int32_t capacity, int32_t* eventCount, int32_t* dropCount);
