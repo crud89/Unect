@@ -172,10 +172,6 @@ UnectResult Unect_GetSensorState(UnectSessionHandle session, UnectSensorState* s
 
 #pragma region "Diagnostics"
 
-UnectResult Unect_GetStreamStats(UnectSessionHandle session, UnectStreamIndex stream, UnectStreamStats* stats) {
-    return UNECT_E_NOT_IMPLEMENTED;
-}
-
 UnectResult Unect_GetLog(char* buffer, int32_t capacity, int32_t* outBytes) {
     return UNECT_E_NOT_IMPLEMENTED;
 }

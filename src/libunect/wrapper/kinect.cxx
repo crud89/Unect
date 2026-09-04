@@ -158,7 +158,7 @@ struct Stream final {
     /// <summary>
     /// Stores the active state of the stream.
     /// </summary>
-    bool isEnabled{};
+    std::atomic<bool> isEnabled{};
 
     /// <summary>
     /// Stores the information about the stream.
@@ -598,7 +598,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
     auto fail = [&](UnectResult reason) {
         // Reset streams.
         for (auto& stream : openStreams | std::views::transform([this](auto type) -> Stream& { return streams[type]; })) {
-            stream.isEnabled = false;
+            stream.isEnabled.store(false, std::memory_order_release);
             stream.onFrameArrived = {};
             stream.frames.clear();
         }
@@ -610,7 +610,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
     };
 
     // Checks if a stream should be opened
-    auto shouldOpen = [&](UnectStreamType type, UnectStreamIndex index) { return (streamTypes & type) && !streams[index].isEnabled; };
+    auto shouldOpen = [&](UnectStreamType type, UnectStreamIndex index) { return (streamTypes & type) && !streams[index].isEnabled.load(std::memory_order_acquire); };
 
     // Color format conversion
     auto convertColorFormat = [](UnectColorFormat format) {
@@ -650,7 +650,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
             return fail(UNECT_E_FAIL);
 
         AllocateFrames(stream, stream.info.bytesPerPixel);
-        stream.isEnabled = true; 
+        stream.isEnabled.store(true, std::memory_order_release); 
         openStreams.push_back(UNECT_SI_DEPTH);
     }
 
@@ -678,7 +678,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
             return fail(UNECT_E_FAIL);
 
         AllocateFrames(stream, stream.info.bytesPerPixel);
-        stream.isEnabled = true; 
+        stream.isEnabled.store(true, std::memory_order_release); 
         openStreams.push_back(UNECT_SI_COLOR);
     }
 
@@ -706,7 +706,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
             return fail(UNECT_E_FAIL);
 
         AllocateFrames(stream, stream.info.bytesPerPixel);
-        stream.isEnabled = true;
+        stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_INFRARED);
     }
 
@@ -734,7 +734,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
             return fail(UNECT_E_FAIL);
 
         AllocateFrames(stream, stream.info.bytesPerPixel);
-        stream.isEnabled = true;
+        stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_LONG_EXPOSURE_IR);
     }
 
@@ -762,7 +762,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
             return fail(UNECT_E_FAIL);
 
         AllocateFrames(stream, stream.info.bytesPerPixel);
-        stream.isEnabled = true;
+        stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_BODY_INDEX);
     }
 
@@ -787,7 +787,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         };
 
         AllocateFrames(stream, stream.info.bytesPerPixel);
-        stream.isEnabled = true;
+        stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_BODY);
     }
 
@@ -835,7 +835,7 @@ void KinectAdapter::Shutdown() {
     for (auto& stream : streams) {
         std::lock_guard<std::mutex> lock{ stream.lock };
 
-        stream.isEnabled = false;
+        stream.isEnabled.store(false, std::memory_order_relaxed);
         stream.onFrameArrived = 0;
         stream.frames.clear();
         stream.syncContext = {};
@@ -951,7 +951,7 @@ void StreamerThread(std::stop_token stopToken) {
             for (int32_t i{}; i < UNECT_SI_COUNT; ++i) {
                 auto& stream = adapter.streams.at(i);
 
-                if (stream.isEnabled && stream.onFrameArrived) {
+                if (stream.isEnabled.load(std::memory_order_acquire) && stream.onFrameArrived) {
                     handles.push_back(asHandle(stream.onFrameArrived));
                     commands.push_back(static_cast<Command>(i));
                 }
@@ -1076,6 +1076,32 @@ void ForceUnlockStreams() {
         std::lock_guard<std::mutex> lock{ stream.lock };
         stream.syncContext.lockedFrame = -1;
     }
+}
+
+UnectResult Unect_GetStreamStats(UnectSessionHandle session, UnectStreamIndex streamIndex, UnectStreamStats* stats) {
+    if (!stats) 
+        return UNECT_E_INVALID_ARG;
+
+    *stats = UnectStreamStats{};
+
+    if (streamIndex < 0 || streamIndex >= UNECT_SI_COUNT)
+        return UNECT_E_INVALID_ARG;
+
+    if (!Unect_SessionValid(session))
+        return UNECT_E_STALE_SESSION;
+
+    auto& adapter = KinectAdapter::get();
+    auto& stream = adapter.streams[streamIndex];
+
+    if (!stream.isEnabled.load(std::memory_order_acquire))
+        return UNECT_E_STREAM_NOT_ENABLED;
+
+    stats->framesArrived    = stream.receivedFrames.load(std::memory_order_relaxed);
+    stats->framesDropped    = stream.droppedFrames.load(std::memory_order_relaxed);
+    stats->framerate        = stream.framerate.load(std::memory_order_relaxed);
+    stats->lastLatency      = stream.lastFrameLatency.load(std::memory_order_relaxed);
+
+    return UNECT_OK;
 }
 
 #pragma endregion
