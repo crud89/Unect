@@ -1263,3 +1263,155 @@ UnectResult Unect_UnlockBodies(UnectSessionHandle session) {
 }
 
 #pragma endregion
+
+#pragma region "Coordinate Mapping"
+
+inline UnectResult GetMapper(UnectSessionHandle session, ComPtr<ICoordinateMapper>* out) {
+    if (!Unect_SessionValid(session))
+        return UNECT_E_STALE_SESSION;
+
+    auto& adapter = KinectAdapter::get();
+
+    std::lock_guard<std::mutex> lock{ adapter.lock };
+
+    if (!adapter.coordinateMapper) 
+        return UNECT_E_SENSOR_UNAVAILABLE;
+    else
+        *out = adapter.coordinateMapper;
+
+    return UNECT_OK;
+}
+
+uint32_t Unect_GetMappingGeneration(UnectSessionHandle /*session*/) {
+    return Internal::g_mappingGeneration.load(std::memory_order_acquire);
+}
+
+UnectResult Unect_MapDepthFrameToCameraSpace(UnectSessionHandle session, const uint16_t* data, int32_t size, UnectVector3* out, int32_t outCapacity) {
+    static_assert(sizeof(CameraSpacePoint) == sizeof(UnectVector3));
+    static_assert(alignof(CameraSpacePoint) == alignof(UnectVector3));
+
+    if (!data || !out || size <= 0 || outCapacity <= 0)
+        return UNECT_E_INVALID_ARG;
+
+    ComPtr<ICoordinateMapper> mapper{};
+
+    if (auto result = ::GetMapper(session, &mapper); result != UNECT_OK)
+        return result;
+
+    // Get the required element count.
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, UNECT_SI_DEPTH, &s); result != UNECT_OK)
+        return result;
+
+    auto required = s->info.pixels();
+
+    if (outCapacity < required) 
+        return UNECT_E_BUFFER_TOO_SMALL;
+
+    if (FAILED(mapper->MapDepthFrameToCameraSpace(static_cast<UINT>(required), data, static_cast<UINT>(required), std::start_lifetime_as<CameraSpacePoint>(out))))
+        return UNECT_E_FAIL;
+    
+    return UNECT_OK;
+}
+
+UnectResult Unect_MapDepthFrameToColorSpace(UnectSessionHandle session, const uint16_t* data, int32_t size, UnectVector2* out, int32_t outCapacity) {
+    static_assert(sizeof(ColorSpacePoint) == sizeof(UnectVector2));
+    static_assert(alignof(ColorSpacePoint) == alignof(UnectVector2));
+
+    if (!data || !out || size <= 0 || outCapacity <= 0)
+        return UNECT_E_INVALID_ARG;
+
+    ComPtr<ICoordinateMapper> mapper{};
+
+    if (auto result = ::GetMapper(session, &mapper); result != UNECT_OK)
+        return result;
+
+    // Get the required element count.
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, UNECT_SI_DEPTH, &s); result != UNECT_OK)
+        return result;
+
+    auto required = s->info.pixels();
+
+    if (outCapacity < required)
+        return UNECT_E_BUFFER_TOO_SMALL;
+
+    if (FAILED(mapper->MapDepthFrameToColorSpace(static_cast<UINT>(required), data, static_cast<UINT>(required), std::start_lifetime_as<ColorSpacePoint>(out))))
+        return UNECT_E_FAIL;
+
+    return UNECT_OK;
+}
+
+UnectResult Unect_MapColorFrameToDepthSpace(UnectSessionHandle session, const uint16_t* data, int32_t size, UnectVector2* out, int32_t outCapacity) {
+    static_assert(sizeof(DepthSpacePoint) == sizeof(UnectVector2));
+    static_assert(alignof(DepthSpacePoint) == alignof(UnectVector2));
+
+    if (!data || !out || size <= 0 || outCapacity <= 0)
+        return UNECT_E_INVALID_ARG;
+
+    ComPtr<ICoordinateMapper> mapper{};
+
+    if (auto result = ::GetMapper(session, &mapper); result != UNECT_OK)
+        return result;
+
+    // Get the required element count.
+    auto require = [&](UnectStreamIndex streamIndex, int32_t& elements) {
+        Stream* s{};
+
+        if (auto result = ::GetStream(session, streamIndex, &s); result != UNECT_OK)
+            return result;
+
+        elements = s->info.pixels();
+        return UNECT_OK;
+    };
+
+    int32_t requiredDepth{}, requiredColor{};
+
+    if (auto result = require(UNECT_SI_DEPTH, requiredDepth); result != UNECT_OK)
+        return result;
+    
+    if (auto result = require(UNECT_SI_COLOR, requiredColor); result != UNECT_OK)
+        return result;
+
+    if (outCapacity < requiredColor)
+        return UNECT_E_BUFFER_TOO_SMALL;
+
+    if (FAILED(mapper->MapColorFrameToDepthSpace(static_cast<UINT>(requiredDepth), data, static_cast<UINT>(requiredColor), std::start_lifetime_as<DepthSpacePoint>(out))))
+        return UNECT_E_FAIL;
+
+    return UNECT_OK;
+}
+
+UnectResult Unect_MapCameraPointsToColorSpace(UnectSessionHandle session, const UnectVector3* data, int32_t size, UnectVector2* out) {
+    if (!data || !out || size <= 0)
+        return UNECT_E_INVALID_ARG;
+
+    ComPtr<ICoordinateMapper> mapper{};
+
+    if (auto result = ::GetMapper(session, &mapper); result != UNECT_OK)
+        return result;
+
+    if (FAILED(mapper->MapCameraPointsToColorSpace(static_cast<UINT>(size), std::start_lifetime_as<const CameraSpacePoint>(data), static_cast<UINT>(size), std::start_lifetime_as<ColorSpacePoint>(out))))
+        return UNECT_E_FAIL;
+
+    return UNECT_OK;
+}
+
+UnectResult Unect_MapCameraPointsToDepthSpace(UnectSessionHandle session, const UnectVector3* data, int32_t size, UnectVector2* out) {
+    if (!data || !out || size <= 0)
+        return UNECT_E_INVALID_ARG;
+
+    ComPtr<ICoordinateMapper> mapper{};
+
+    if (auto result = ::GetMapper(session, &mapper); result != UNECT_OK)
+        return result;
+
+    if (FAILED(mapper->MapCameraPointsToDepthSpace(static_cast<UINT>(size), std::start_lifetime_as<const CameraSpacePoint>(data), static_cast<UINT>(size), std::start_lifetime_as<DepthSpacePoint>(out))))
+        return UNECT_E_FAIL;
+
+    return UNECT_OK;
+}
+
+#pragma endregion

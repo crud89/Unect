@@ -477,17 +477,60 @@ extern "C" {
     /// </summary>
     /// <param name="session">The session from which to obtain the mapping generation.</param>
     /// <returns>The current mapping generation.</returns>
-    //LIBUNECT_EXPORT uint32_t UNECT_CALL Unect_GetMappingGeneration(UnectSessionHandle session);
+    LIBUNECT_EXPORT uint32_t UNECT_CALL Unect_GetMappingGeneration(UnectSessionHandle session);
 
-    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapDepthFrameToCameraSpace(UnectSessionHandle session, const uint16_t* depth, int32_t depthCount, UnectVector3* out, int32_t outCapacity);
+    /// <summary>
+    /// Maps a depth frame into camera space.
+    /// </summary>
+    /// <param name="session">The session used for mapping.</param>
+    /// <param name="data">The depth data buffer.</param>
+    /// <param name="size">The size of the depth data buffer.</param>
+    /// <param name="out">A pointer to the result buffer.</param>
+    /// <param name="outCapacity">The size of the result buffer.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapDepthFrameToCameraSpace(UnectSessionHandle session, const uint16_t* data, int32_t size, UnectVector3* out, int32_t outCapacity);
+    
+    /// <summary>
+    /// Maps a depth frame into color space.
+    /// </summary>
+    /// <param name="session">The session used for mapping.</param>
+    /// <param name="data">The depth data buffer.</param>
+    /// <param name="size">The size of the depth data buffer.</param>
+    /// <param name="out">A pointer to the result buffer.</param>
+    /// <param name="outCapacity">The size of the result buffer.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapDepthFrameToColorSpace(UnectSessionHandle session, const uint16_t* data, int32_t size, UnectVector2* out, int32_t outCapacity);
 
-    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapDepthFrameToColorSpace(UnectSessionHandle session, const uint16_t* depth, int32_t depthCount, UnectVector2* out, int32_t outCapacity);
+    /// <summary>
+    /// Maps a color frame into depth space.
+    /// </summary>
+    /// <param name="session">The session used for mapping.</param>
+    /// <param name="data">The depth data buffer.</param>
+    /// <param name="size">The size of the depth data buffer.</param>
+    /// <param name="out">A pointer to the result buffer.</param>
+    /// <param name="outCapacity">The size of the result buffer.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapColorFrameToDepthSpace(UnectSessionHandle session, const uint16_t* data, int32_t size, UnectVector2* out, int32_t outCapacity);
 
-    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapColorFrameToDepthSpace(UnectSessionHandle session, const uint16_t* depth, int32_t depthCount, UnectVector2* out, int32_t outCapacity);
+    /// <summary>
+    /// Maps a set of points into color space.
+    /// </summary>
+    /// <param name="session">The session used for mapping.</param>
+    /// <param name="data">The points array.</param>
+    /// <param name="size">The size of the points array</param>
+    /// <param name="out">The coordinates of the points in the color image.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapCameraPointsToColorSpace(UnectSessionHandle session, const UnectVector3* data, int32_t size, UnectVector2* out);
 
-    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapCameraPointsToColorSpace(UnectSessionHandle session, const UnectVector3* pts, int32_t count, UnectVector2* out);
-
-    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapCameraPointsToDepthSpace(UnectSessionHandle session, const UnectVector3* pts, int32_t count, UnectVector2* out);
+    /// <summary>
+    /// Maps a set of points into depth space.
+    /// </summary>
+    /// <param name="session">The session used for mapping.</param>
+    /// <param name="data">The points array.</param>
+    /// <param name="size">The size of the points array</param>
+    /// <param name="out">The coordinates of the points in the color image.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapCameraPointsToDepthSpace(UnectSessionHandle session, const UnectVector3* data, int32_t size, UnectVector2* out);
 
     /// <summary>
     /// Returns meta-data about a specific stream.
