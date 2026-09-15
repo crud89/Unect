@@ -1,0 +1,12 @@
+*				text=auto	eol=lf
+*.meta			text		eol=lf
+*.asmdef		text		eol=lf
+*.json			text		eol=lf
+*.cs			text		eol=lf
+*.cmake			text		eol=lf
+CMakeLists.txt  text		eol=lf
+
+*.dll			binary
+*.pdb			binary
+*.unity			-text		merge=binary
+*.prefab		-text		merge=binary
