@@ -7,9 +7,9 @@ find_package(kinectsdk2 CONFIG REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED 
     "include/libunect.h"
+    "include/body.h"
+    "include/vector.h"
 
-    "wrapper/body.h"
-    "wrapper/vector.h"
     "wrapper/kinect.h"
     "wrapper/kinect.cxx"
 

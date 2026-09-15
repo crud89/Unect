@@ -2,6 +2,9 @@
 
 #include <libunect/libunect_export.h>
 
+#include "vector.h"
+#include "body.h"
+
 #include <stdint.h>
 
 #if defined(_WIN32)
@@ -13,8 +16,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef NDEBUG
 
     /// <summary>
     /// Stores the ABI version (used during development to check if a library should be reloaded).
@@ -28,8 +29,6 @@ extern "C" {
     constexpr LIBUNECT_EXPORT int32_t UNECT_CALL Unect_GetAbiVersion() {
         return UNECT_ABI_VERSION;
     }
-
-#endif
 
 #pragma region "Enumerations"
 
@@ -365,6 +364,182 @@ extern "C" {
 
 #pragma endregion
 
+#pragma region "Streaming"
+    
+    /// <summary>
+    /// Stores meta-data about a stream.
+    /// </summary>
+    typedef struct UnectStreamInfo {
+
+        /// <summary>
+        /// Stores the stream width in pixels.
+        /// </summary>
+        int32_t width{};
+
+        /// <summary>
+        /// Stores the stream height in pixels.
+        /// </summary>
+        int32_t height{};
+
+        /// <summary>
+        /// Stores the pixel depth of the stream.
+        /// </summary>
+        uint32_t bytesPerPixel{};
+
+        /// <summary>
+        /// Stores the number of pixels.
+        /// </summary>
+        int32_t pixelCount{};
+
+        /// <summary>
+        /// Stores the overall size of a frame (in bytes).
+        /// </summary>
+        uint32_t totalSize{};
+
+    } UnectStreamInfo;
+
+    /// <summary>
+    /// Represents a view over an image from a stream.
+    /// </summary>
+    typedef struct UnectImageView {
+
+        /// <summary>
+        /// A pointer to the image pixels.
+        /// </summary>
+        const void* data{};
+
+        /// <summary>
+        /// The size of the image in bytes.
+        /// </summary>
+        int32_t size{};
+
+        /// <summary>
+        /// The width of the image in pixels.
+        /// </summary>
+        int32_t width{};
+
+        /// <summary>
+        /// The height of the image in pixels.
+        /// </summary>
+        int32_t height{};
+
+        /// <summary>
+        /// The latency at which the image has been acquired in milliseconds.
+        /// </summary>
+        int64_t latency{};
+
+        /// <summary>
+        /// The generation of the image.
+        /// </summary>
+        uint64_t generation{};
+
+    } UnectImageView;
+
+    /// <summary>
+    /// Represents a view over a body from a stream.
+    /// </summary>
+    typedef struct UnectBodyView {
+
+        /// <summary>
+        /// A pointer to the bodies array, contains <see cref="bodyCount" /> elements.
+        /// </summary>
+        const Body* bodies{};
+
+        /// <summary>
+        /// The number of bodies in the <see cref="bodies" /> array.
+        /// </summary>
+        int32_t bodyCount{};
+
+        /// <summary>
+        /// The number of bodies in the <see cref="bodies" /> array that are currently tracked.
+        /// </summary>
+        int32_t trackedCount{};
+
+        /// <summary>
+        /// The floor clip plane in parametric form.
+        /// </summary>
+        UnectVector4 floorPlane{};
+
+        /// <summary>
+        /// The latency at which the image has been acquired in milliseconds.
+        /// </summary>
+        int64_t latency{};
+
+        /// <summary>
+        /// The generation of the image.
+        /// </summary>
+        uint64_t generation{};
+
+    } UnectBodyView;
+
+    /// <summary>
+    /// Returns the current mapping generation, that is incremented, if the underlying sensor changes the coordinate mapping reference.
+    /// </summary>
+    /// <param name="session">The session from which to obtain the mapping generation.</param>
+    /// <returns>The current mapping generation.</returns>
+    //LIBUNECT_EXPORT uint32_t UNECT_CALL Unect_GetMappingGeneration(UnectSessionHandle session);
+
+    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapDepthFrameToCameraSpace(UnectSessionHandle session, const uint16_t* depth, int32_t depthCount, UnectVector3* out, int32_t outCapacity);
+
+    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapDepthFrameToColorSpace(UnectSessionHandle session, const uint16_t* depth, int32_t depthCount, UnectVector2* out, int32_t outCapacity);
+
+    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapColorFrameToDepthSpace(UnectSessionHandle session, const uint16_t* depth, int32_t depthCount, UnectVector2* out, int32_t outCapacity);
+
+    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapCameraPointsToColorSpace(UnectSessionHandle session, const UnectVector3* pts, int32_t count, UnectVector2* out);
+
+    //LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_MapCameraPointsToDepthSpace(UnectSessionHandle session, const UnectVector3* pts, int32_t count, UnectVector2* out);
+
+    /// <summary>
+    /// Returns meta-data about a specific stream.
+    /// </summary>
+    /// <param name="session">The session from which to acquire the stream.</param>
+    /// <param name="stream">The stream to query.</param>
+    /// <param name="info">A pointer to the stream info.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetStreamInfo(UnectSessionHandle session, UnectStreamIndex stream, UnectStreamInfo* info);
+
+    /// <summary>
+    /// Returns the generation of an image stream.
+    /// </summary>
+    /// <param name="session">The session on which to query the stream.</param>
+    /// <param name="stream">The index of the stream.</param>
+    /// <returns>The image generation on the stream.</returns>
+    LIBUNECT_EXPORT uint64_t UNECT_CALL Kinect2_PeekGeneration(UnectSessionHandle session, UnectStreamIndex stream);
+
+    /// <summary>
+    /// Acquires an image from the image stream.
+    /// </summary>
+    /// <param name="session">The session from which to acquire the image.</param>
+    /// <param name="stream">The stream from which to obtain the image.</param>
+    /// <param name="image">A pointer to the image view.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_LockImage(UnectSessionHandle session, UnectStreamIndex stream, UnectImageView* image);
+
+    /// <summary>
+    /// Releases image back to the stream.
+    /// </summary>
+    /// <param name="session">The session from which the image was acquired.</param>
+    /// <param name="stream">The stream from which the image was obtained.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_UnlockImage(UnectSessionHandle session, UnectStreamIndex stream);
+
+    /// <summary>
+    /// Acquires a body from the bodies stream.
+    /// </summary>
+    /// <param name="session">The session from which to acquire the body.</param>
+    /// <param name="body">A pointer to the body view.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_LockBodies(UnectSessionHandle session, UnectBodyView* body);
+
+    /// <summary>
+    /// Releases a body back to the stream.
+    /// </summary>
+    /// <param name="session">The session from which the image was acquired.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_UnlockBodies(UnectSessionHandle session);
+
+#pragma endregion
+
 #pragma region "Diagnostics"
 
     /// <summary>
@@ -402,6 +577,13 @@ extern "C" {
     /// <param name="stats">A pointer to the diagnostics container.</param>
     /// <returns>The return code of the function.</returns>
     LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetStreamStats(UnectSessionHandle session, UnectStreamIndex stream, UnectStreamStats* stats);
+
+    /// <summary>
+    /// Returns a human-readable representation of an error code.
+    /// </summary>
+    /// <param name="result">The error (or result) code.</param>
+    /// <returns>A human-readable representation of the result.</returns>
+    LIBUNECT_EXPORT const char* UNECT_CALL Unect_GetResultString(UnectResult result);
 
     /// <summary>
     /// Reports the cached log messages.

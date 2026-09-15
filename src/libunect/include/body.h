@@ -2,11 +2,6 @@
 
 #include "vector.h"
 
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-
-#include <Kinect.h>
-
 #include <cstdint>
 #include <array>
 
@@ -101,63 +96,5 @@ struct Body final {
     /// Stores the joints of the body.
     /// </summary>
     std::array<UnectJoint, UNECT_JOINT_COUNT> joints{};
-
-public:
-    /// <summary>
-    /// Initializes the instance from a kinect body pointer.
-    /// </summary>
-    /// <param name="body">The body to initialize the instance from.</param>
-    void ConvertFrom(IBody* body) {
-        if (!body)
-            return;
-
-        BOOLEAN tracked{ FALSE };
-        body->get_IsTracked(&tracked);
-
-        if (isTracked = static_cast<bool>(tracked); !isTracked)
-            return;
-
-        body->get_TrackingId(&trackingId);
-
-        DWORD clipped{};
-        HandState hs{ HandState_Unknown };
-        TrackingConfidence tc{ TrackingConfidence_Low };
-
-        body->get_ClippedEdges(&clipped);
-        clippedEdges = static_cast<int32_t>(clipped);
-        body->get_HandLeftState(&hs);        
-        handLeftState = static_cast<int32_t>(hs);
-        body->get_HandLeftConfidence(&tc);   
-        handLeftConfidence = static_cast<int32_t>(tc);
-        body->get_HandRightState(&hs);       
-        handRightState = static_cast<int32_t>(hs);
-        body->get_HandRightConfidence(&tc);  
-        handRightConfidence = static_cast<int32_t>(tc);
-
-        TrackingState leanTs{ TrackingState_NotTracked };
-        body->get_LeanTrackingState(&leanTs);
-        leanTrackingState = static_cast<int32_t>(leanTs);
-
-        PointF lean{};
-        body->get_Lean(&lean);
-        lean = { lean.X, lean.Y };
-
-        BOOLEAN restricted = FALSE;
-        body->get_IsRestricted(&restricted);
-        isRestricted = static_cast<bool>(restricted);
-
-        ::Joint kinectJoints[JointType_Count]{};
-        ::JointOrientation kinectJointOrientations[JointType_Count]{};
-
-        body->GetJoints(JointType_Count, kinectJoints);
-        body->GetJointOrientations(JointType_Count, kinectJointOrientations);
-
-        for (uint32_t j{}; auto& joint : joints) {
-            joint.position = { kinectJoints[j].Position.X, kinectJoints[j].Position.Y, kinectJoints[j].Position.Z };
-            joint.orientation = { kinectJointOrientations[j].Orientation.x, kinectJointOrientations[j].Orientation.y, kinectJointOrientations[j].Orientation.z, kinectJointOrientations[j].Orientation.w };
-            joint.trackingState = static_cast<int32_t>(kinectJoints[j].TrackingState);
-            j++;
-        }
-    }
 
 };

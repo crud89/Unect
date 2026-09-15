@@ -172,6 +172,39 @@ UnectResult Unect_GetSensorState(UnectSessionHandle session, UnectSensorState* s
 
 #pragma region "Diagnostics"
 
+const char* Unect_GetResultString(UnectResult result) {
+    switch (result) {
+    case UNECT_OK:
+        return "UNECT_OK";
+    case UNECT_NO_FRAME:
+        return "UNECT_NO_FRAME";
+    case UNECT_E_FAIL:
+        return "UNECT_E_FAIL";
+    case UNECT_E_INVALID_ARG:
+        return "UNECT_E_INVALID_ARG";
+    case UNECT_E_STALE_SESSION:
+        return "UNECT_E_STALE_SESSION";
+    case UNECT_E_STREAM_NOT_ENABLED:
+        return "UNECT_E_STREAM_NOT_ENABLED";
+    case UNECT_E_BUFFER_TOO_SMALL:
+        return "UNECT_E_BUFFER_TOO_SMALL";
+    case UNECT_E_SENSOR_UNAVAILABLE:
+        return "UNECT_E_SENSOR_UNAVAILABLE";
+    case UNECT_E_ALREADY_LOCKED:
+        return "UNECT_E_ALREADY_LOCKED";
+    case UNECT_E_NOT_LOCKED:
+        return "UNECT_E_NOT_LOCKED";
+    case UNECT_E_ABI_MISMATCH:
+        return "UNECT_E_ABI_MISMATCH";
+    case UNECT_E_UNSUPPORTED:
+        return "UNECT_E_UNSUPPORTED";
+    case UNECT_E_NOT_IMPLEMENTED:
+        return "UNECT_E_NOT_IMPLEMENTED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
 UnectResult Unect_GetLog(char* buffer, int32_t capacity, int32_t* outBytes) {
     return UNECT_E_NOT_IMPLEMENTED;
 }

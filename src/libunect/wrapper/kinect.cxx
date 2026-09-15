@@ -541,7 +541,7 @@ private:
                 if (!bodyData.raw[i])
                     bodies[i] = {};
                 else {
-                    bodies[i].ConvertFrom(bodyData.raw[i]);
+                    bodies[i] = ::ConvertFrom(bodyData.raw[i]);
 
                     if (bodies[i].isTracked) {
                         ++trackedBodies;
@@ -1101,6 +1101,164 @@ UnectResult Unect_GetStreamStats(UnectSessionHandle session, UnectStreamIndex st
     stats->framerate        = stream.framerate.load(std::memory_order_relaxed);
     stats->lastLatency      = stream.lastFrameLatency.load(std::memory_order_relaxed);
 
+    return UNECT_OK;
+}
+
+#pragma endregion
+
+#pragma region "Library interface"
+
+inline UnectResult GetStream(UnectSessionHandle session, UnectStreamIndex streamIndex, Stream** s) {
+    *s = {};
+
+    if (!Unect_SessionValid(session))
+        return UNECT_E_STALE_SESSION;
+
+    if (streamIndex < 0 || streamIndex >= UNECT_SI_COUNT)
+        return UNECT_E_INVALID_ARG;
+
+    auto& adapter = KinectAdapter::get();
+    auto& stream = adapter.streams[streamIndex];
+
+    if (!stream.isEnabled.load(std::memory_order_acquire))
+        return UNECT_E_STREAM_NOT_ENABLED;
+
+    *s = &stream;
+    return UNECT_OK;
+}
+
+UnectResult Unect_GetStreamInfo(UnectSessionHandle session, UnectStreamIndex stream, UnectStreamInfo* info) {
+    if (!info)
+        return UNECT_E_INVALID_ARG;
+
+    *info = {};
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, stream, &s); result != UNECT_OK)
+        return result;
+
+    *info = {
+        .width = s->info.width,
+        .height = s->info.height,
+        .bytesPerPixel = s->info.bytesPerPixel,
+        .pixelCount = s->info.pixels(),
+        .totalSize = s->info.size()
+    };
+
+    return UNECT_OK;
+}
+
+uint64_t Kinect2_PeekGeneration(UnectSessionHandle session, UnectStreamIndex stream) {
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, stream, &s); result != UNECT_OK)
+        return 0u;
+
+    return s->generation.load(std::memory_order_acquire);
+}
+
+UnectResult Unect_LockImage(UnectSessionHandle session, UnectStreamIndex stream, UnectImageView* image) {
+    if (!image)
+        return UNECT_E_INVALID_ARG;
+
+    *image = {};
+
+    if (stream == UNECT_SI_BODY)
+        return UNECT_E_INVALID_ARG;
+
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, stream, &s); result != UNECT_OK)
+        return result;
+
+    std::lock_guard<std::mutex> lock{ s->lock };
+
+    if (s->syncContext.lockedFrame >= 0) 
+        return UNECT_E_ALREADY_LOCKED;
+    else if (s->syncContext.publishedFrame < 0)
+        return UNECT_NO_FRAME;
+
+    s->syncContext.lockedFrame = s->syncContext.publishedFrame;
+    s->syncContext.canReplace = true;
+    
+    auto& frame = s->frames[s->syncContext.lockedFrame];
+    image->data = frame.buffer.data();
+    image->size = static_cast<int32_t>(frame.buffer.size());
+    image->width = s->info.width;
+    image->height = s->info.height;
+    image->latency = frame.timestamp;
+    image->generation = frame.generation;
+
+    return UNECT_OK;
+}
+
+UnectResult Unect_UnlockImage(UnectSessionHandle session, UnectStreamIndex stream) {
+    if (stream == UNECT_SI_BODY) 
+        return UNECT_E_INVALID_ARG;
+
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, stream, &s); result != UNECT_OK)
+        return result;
+
+    std::lock_guard<std::mutex> lock{ s->lock };
+
+    if (s->syncContext.lockedFrame < 0)
+        return UNECT_E_NOT_LOCKED;
+
+    s->syncContext.lockedFrame = -1;
+
+    return UNECT_OK;
+}
+
+UnectResult Unect_LockBodies(UnectSessionHandle session, UnectBodyView* body) {
+    if (!body)
+        return UNECT_E_INVALID_ARG;
+
+    *body = {};
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, UNECT_SI_BODY, &s); result != UNECT_OK)
+        return result;
+
+    std::lock_guard<std::mutex> lock{ s->lock };
+
+    if (s->syncContext.lockedFrame >= 0)
+        return UNECT_E_ALREADY_LOCKED;
+    else if (s->syncContext.publishedFrame < 0)
+        return UNECT_NO_FRAME;
+
+    s->syncContext.lockedFrame = s->syncContext.publishedFrame;
+    s->syncContext.canReplace = true;
+
+    auto& frame = s->frames[s->syncContext.lockedFrame];
+    body->bodies = std::start_lifetime_as<Body>(frame.buffer.data());
+    body->bodyCount = UNECT_BODY_COUNT;
+    body->floorPlane = frame.floorClipPlane;
+    body->latency = frame.timestamp;
+    body->generation = frame.generation;
+    body->trackedCount = {};
+
+    for (uint32_t i{}; i < UNECT_BODY_COUNT; ++i)
+        if (body->bodies[i].isTracked)
+            body->trackedCount++;
+
+    return UNECT_OK;
+}
+
+UnectResult Unect_UnlockBodies(UnectSessionHandle session) {
+    Stream* s{};
+
+    if (auto result = ::GetStream(session, UNECT_SI_BODY, &s); result != UNECT_OK)
+        return result;
+
+    std::lock_guard<std::mutex> lock{ s->lock };
+    
+    if (s->syncContext.lockedFrame < 0)
+        return UNECT_E_NOT_LOCKED;
+
+    s->syncContext.lockedFrame = -1;
+    
     return UNECT_OK;
 }
 
