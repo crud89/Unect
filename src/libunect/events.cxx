@@ -189,7 +189,7 @@ UnectResult PopEvents(UnectEvent* events, int32_t capacity, int32_t* eventCount,
     return UNECT_OK;
 }
 
-LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_PollEvents(UnectSessionHandle session, UnectEvent* events, int32_t capacity, int32_t* eventCount, int32_t* dropCount)
+UnectResult Unect_PollEvents(UnectSessionHandle session, UnectEvent* events, int32_t capacity, int32_t* eventCount, int32_t* dropCount)
 {
     if (eventCount)
         *eventCount = 0;

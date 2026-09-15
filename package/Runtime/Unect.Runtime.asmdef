@@ -1,0 +1,17 @@
+{
+  "name": "Unect.Runtime",
+  "rootNamespace": "Unect",
+  "references": [],
+  "includePlatforms": [
+    "Editor",
+    "WindowsStandalone64"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": true,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

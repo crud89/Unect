@@ -1148,7 +1148,7 @@ UnectResult Unect_GetStreamInfo(UnectSessionHandle session, UnectStreamIndex str
     return UNECT_OK;
 }
 
-uint64_t Kinect2_PeekGeneration(UnectSessionHandle session, UnectStreamIndex stream) {
+uint64_t Unect_PeekGeneration(UnectSessionHandle session, UnectStreamIndex stream) {
     Stream* s{};
 
     if (auto result = ::GetStream(session, stream, &s); result != UNECT_OK)

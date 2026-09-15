@@ -547,7 +547,7 @@ extern "C" {
     /// <param name="session">The session on which to query the stream.</param>
     /// <param name="stream">The index of the stream.</param>
     /// <returns>The image generation on the stream.</returns>
-    LIBUNECT_EXPORT uint64_t UNECT_CALL Kinect2_PeekGeneration(UnectSessionHandle session, UnectStreamIndex stream);
+    LIBUNECT_EXPORT uint64_t UNECT_CALL Unect_PeekGeneration(UnectSessionHandle session, UnectStreamIndex stream);
 
     /// <summary>
     /// Acquires an image from the image stream.
@@ -613,6 +613,65 @@ extern "C" {
     } UnectStreamStats;
 
     /// <summary>
+    /// The type of an event pushed to <see cref="PushEvent" />
+    /// </summary>
+    typedef enum UnectEventType : uint32_t {
+
+        /// <summary>
+        /// Indicates that the sensor state has changed.
+        /// </summary>
+        UNECT_EVENT_SENSOR_STATE = 1,
+
+        /// <summary>
+        /// Indicates that a new body is tracked.
+        /// </summary>
+        UNECT_EVENT_BODY_ENTERED = 2,
+
+        /// <summary>
+        /// Indicates that a body is no longer tracked.
+        /// </summary>
+        UNECT_EVENT_BODY_LEFT = 3,
+
+        /// <summary>
+        /// Indicates that the coordinate mapping has changed.
+        /// </summary>
+        UNECT_EVENT_MAPPING_CHANGED = 4,
+
+        /// <summary>
+        /// Indicates that a stream error has occurred.
+        /// </summary>
+        UNECT_EVENT_STREAM_ERROR = 5
+
+    } UnectEventType;
+
+    /// <summary>
+    /// Represents a single event in the event stream.
+    /// </summary>
+    typedef struct UnectEvent {
+
+        /// <summary>
+        /// Stores the event type.
+        /// </summary>
+        UnectEventType type{};
+
+        /// <summary>
+        /// Stores the first event parameter.
+        /// </summary>
+        int32_t param1{};
+
+        /// <summary>
+        /// Stores the second event parameter.
+        /// </summary>
+        uint64_t param2{};
+
+        /// <summary>
+        /// Stores the timestamp of the event.
+        /// </summary>
+        int64_t timestamp{};
+
+    } UnectEvent;
+
+    /// <summary>
     /// Returns the current diagnostics for a particular stream.
     /// </summary>
     /// <param name="session">The session that contains the stream.</param>
@@ -620,6 +679,17 @@ extern "C" {
     /// <param name="stats">A pointer to the diagnostics container.</param>
     /// <returns>The return code of the function.</returns>
     LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_GetStreamStats(UnectSessionHandle session, UnectStreamIndex stream, UnectStreamStats* stats);
+
+    /// <summary>
+    /// Acquires a number of queued events from the event queue.
+    /// </summary>
+    /// <param name="session">The session that hosts the event queue.</param>
+    /// <param name="events">A pointer to the events buffer.</param>
+    /// <param name="capacity">The number of events in the events buffer.</param>
+    /// <param name="eventCount">A pointer that receives the number of events written into the buffer.</param>
+    /// <param name="dropCount">A pointer that receives the number of dropped events.</param>
+    /// <returns>The return code of the function.</returns>
+    LIBUNECT_EXPORT UnectResult UNECT_CALL Unect_PollEvents(UnectSessionHandle session, UnectEvent* events, int32_t capacity, int32_t* eventCount, int32_t* dropCount);
 
     /// <summary>
     /// Returns a human-readable representation of an error code.

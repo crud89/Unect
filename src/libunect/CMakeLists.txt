@@ -29,6 +29,9 @@ kinectsdk2_deploy_data(${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO "Debug"
     MAP_IMPORTED_CONFIG_MINSIZEREL "Release"
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+    PREFIX ""
+    WINDOWS_EXPORT_ALL_SYMBOLS OFF
 )
 
 generate_export_header(${PROJECT_NAME}
@@ -42,8 +45,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS ${PROJECT_NAME} 
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
-)
+if (MSVC)
+    target_link_options(libunect PRIVATE $<$<CONFIG:Release,RelWithDebInfo>:/OPT:REF /OPT:ICF>)
+endif (MSVC)

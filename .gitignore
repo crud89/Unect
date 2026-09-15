@@ -430,3 +430,6 @@ FodyWeavers.xsd
 
 # Include package meta files
 !package/**/*.meta
+
+*.dll
+*.pdb

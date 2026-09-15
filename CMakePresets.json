@@ -67,11 +67,25 @@
   "buildPresets": [
     {
       "name": "windows-msvc-x64-debug",
+      "description": "Win64 Debug (libunect.dll only)",
       "configurePreset": "windows-msvc-x64-debug"
     },
     {
+      "name": "sync",
+      "description": "Synchronize (for development)",
+      "configurePreset": "windows-msvc-x64-debug",
+      "targets": [ "unity-sync" ]
+    },
+    {
       "name": "windows-msvc-x64-release",
+      "description": "Win64 Release (libunect.dll only)",
       "configurePreset": "windows-msvc-x64-release"
+    },
+    {
+      "name": "package",
+      "description": "Unity Package",
+      "configurePreset": "windows-msvc-x64-release",
+      "targets": [ "unity-package", "unity-package-debug-symbols" ]
     }
   ]
 }
