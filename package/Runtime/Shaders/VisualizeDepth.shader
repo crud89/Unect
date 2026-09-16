@@ -8,7 +8,10 @@ Shader "Unect/VisualizeDepth"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque" "PreviewType"="Plane" }
+        Cull Off
+        ZWrite Off
+        Lighting Off
         Pass
         {
             CGPROGRAM
