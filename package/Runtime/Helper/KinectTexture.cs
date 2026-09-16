@@ -111,6 +111,7 @@ namespace Unect.Helper
 
             // Store the session.
             this.session = session;
+            this.stream = stream;
         }
 
         /// <summary>
