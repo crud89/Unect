@@ -33,7 +33,7 @@ namespace Unect
         /// <summary>
         /// The overall size of a frame in the stream in bytes.
         /// </summary>
-        uint totalSize;
+        public uint totalSize;
 
     }
 
