@@ -424,9 +424,9 @@ extern "C" {
         int32_t height{};
 
         /// <summary>
-        /// The latency at which the image has been acquired in milliseconds.
+        /// The timestamp at which the image has been acquired in milliseconds.
         /// </summary>
-        int64_t latency{};
+        int64_t timestamp{};
 
         /// <summary>
         /// The generation of the image.
@@ -461,9 +461,9 @@ extern "C" {
         UnectVector4 floorPlane{};
 
         /// <summary>
-        /// The latency at which the image has been acquired in milliseconds.
+        /// The timestamp at which the image has been acquired in milliseconds.
         /// </summary>
-        int64_t latency{};
+        int64_t timestamp{};
 
         /// <summary>
         /// The generation of the image.

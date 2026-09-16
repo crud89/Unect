@@ -641,7 +641,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         else if (auto info = StreamInfo::describeFrom(frameDesc.Get()); info.has_value())
             stream.info = info.value();
         else
-            fail(UNECT_E_FAIL);
+            return fail(UNECT_E_FAIL);
 
         if (FAILED(source->OpenReader(&readers.depth))) 
             return fail(UNECT_E_FAIL);
@@ -649,7 +649,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         if (FAILED(readers.depth->SubscribeFrameArrived(&stream.onFrameArrived))) 
             return fail(UNECT_E_FAIL);
 
-        AllocateFrames(stream, stream.info.bytesPerPixel);
+        AllocateFrames(stream, stream.info.size());
         stream.isEnabled.store(true, std::memory_order_release); 
         openStreams.push_back(UNECT_SI_DEPTH);
     }
@@ -669,7 +669,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         else if (auto info = StreamInfo::describeFrom(frameDesc.Get()); info.has_value())
             stream.info = info.value();
         else
-            fail(UNECT_E_FAIL);
+            return fail(UNECT_E_FAIL);
 
         if (FAILED(source->OpenReader(&readers.color)))
             return fail(UNECT_E_FAIL);
@@ -677,7 +677,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         if (FAILED(readers.color->SubscribeFrameArrived(&stream.onFrameArrived)))
             return fail(UNECT_E_FAIL);
 
-        AllocateFrames(stream, stream.info.bytesPerPixel);
+        AllocateFrames(stream, stream.info.size());
         stream.isEnabled.store(true, std::memory_order_release); 
         openStreams.push_back(UNECT_SI_COLOR);
     }
@@ -697,7 +697,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         else if (auto info = StreamInfo::describeFrom(frameDesc.Get()); info.has_value())
             stream.info = info.value();
         else
-            fail(UNECT_E_FAIL);
+            return fail(UNECT_E_FAIL);
 
         if (FAILED(source->OpenReader(&readers.infrared))) 
             return fail(UNECT_E_FAIL);
@@ -705,7 +705,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         if (FAILED(readers.infrared->SubscribeFrameArrived(&stream.onFrameArrived))) 
             return fail(UNECT_E_FAIL);
 
-        AllocateFrames(stream, stream.info.bytesPerPixel);
+        AllocateFrames(stream, stream.info.size());
         stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_INFRARED);
     }
@@ -725,7 +725,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         else if (auto info = StreamInfo::describeFrom(frameDesc.Get()); info.has_value())
             stream.info = info.value();
         else
-            fail(UNECT_E_FAIL);
+            return fail(UNECT_E_FAIL);
 
         if (FAILED(source->OpenReader(&readers.longExposureInfrared)))
             return fail(UNECT_E_FAIL);
@@ -733,7 +733,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         if (FAILED(readers.longExposureInfrared->SubscribeFrameArrived(&stream.onFrameArrived)))
             return fail(UNECT_E_FAIL);
 
-        AllocateFrames(stream, stream.info.bytesPerPixel);
+        AllocateFrames(stream, stream.info.size());
         stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_LONG_EXPOSURE_IR);
     }
@@ -753,7 +753,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         else if (auto info = StreamInfo::describeFrom(frameDesc.Get()); info.has_value())
             stream.info = info.value();
         else
-            fail(UNECT_E_FAIL);
+            return fail(UNECT_E_FAIL);
 
         if (FAILED(source->OpenReader(&readers.bodyIndex)))
             return fail(UNECT_E_FAIL);
@@ -761,7 +761,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
         if (FAILED(readers.bodyIndex->SubscribeFrameArrived(&stream.onFrameArrived)))
             return fail(UNECT_E_FAIL);
 
-        AllocateFrames(stream, stream.info.bytesPerPixel);
+        AllocateFrames(stream, stream.info.size());
         stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_BODY_INDEX);
     }
@@ -786,7 +786,7 @@ UnectResult KinectAdapter::OpenStreams(UnectStreamType streamTypes) {
             static_cast<uint32_t>(sizeof(Body)) 
         };
 
-        AllocateFrames(stream, stream.info.bytesPerPixel);
+        AllocateFrames(stream, stream.info.size());
         stream.isEnabled.store(true, std::memory_order_release);
         openStreams.push_back(UNECT_SI_BODY);
     }
@@ -1186,7 +1186,7 @@ UnectResult Unect_LockImage(UnectSessionHandle session, UnectStreamIndex stream,
     image->size = static_cast<int32_t>(frame.buffer.size());
     image->width = s->info.width;
     image->height = s->info.height;
-    image->latency = frame.timestamp;
+    image->timestamp = frame.timestamp;
     image->generation = frame.generation;
 
     return UNECT_OK;
@@ -1235,7 +1235,7 @@ UnectResult Unect_LockBodies(UnectSessionHandle session, UnectBodyView* body) {
     body->bodies = std::start_lifetime_as<Body>(frame.buffer.data());
     body->bodyCount = UNECT_BODY_COUNT;
     body->floorPlane = frame.floorClipPlane;
-    body->latency = frame.timestamp;
+    body->timestamp = frame.timestamp;
     body->generation = frame.generation;
     body->trackedCount = {};
 
