@@ -160,7 +160,7 @@ void ResetEvents() {
 }
 
 UnectResult PopEvents(UnectEvent* events, int32_t capacity, int32_t* eventCount, int32_t* dropCount) {
-    if (!events || !*eventCount || !dropCount || capacity <= 0)
+    if (!events || !eventCount || !dropCount || capacity <= 0)
         return UNECT_E_INVALID_ARG;
 
     auto& eventBuffer = EventBuffer::get();
