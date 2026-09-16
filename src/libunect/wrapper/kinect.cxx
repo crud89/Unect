@@ -975,9 +975,15 @@ void StreamerThread(std::stop_token stopToken) {
             adapter.AvailabilityChangedHandler();
             continue;
         case Command::MappingChanged:
+        {
+            // We need to consume the mapping changed event data in order for the event to reset.
+            ComPtr<ICoordinateMappingChangedEventArgs> args;
+            auto _ = adapter.coordinateMapper->GetCoordinateMappingChangedEventData(adapter.onMapping, &args);
+
             Internal::g_mappingGeneration.fetch_add(1u, std::memory_order_release);
             PushEvent(UNECT_EVENT_MAPPING_CHANGED, 0, 0);
             continue;
+        }
         default:
             adapter.StreamFrames(static_cast<UnectStreamIndex>(std::to_underlying(command)));
             continue;
