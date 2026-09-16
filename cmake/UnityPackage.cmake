@@ -1,5 +1,6 @@
 set(UNECT_PKG_SRC   "${CMAKE_SOURCE_DIR}/package")
-set(UNECT_PKG_STAGE "${CMAKE_BINARY_DIR}/unity-package/package")
+set(UNECT_PKG_WORK  "${CMAKE_BINARY_DIR}/unity-package")
+set(UNECT_PKG_STAGE "${UNECT_PKG_WORK}/package")
 set(UNECT_DIST_DIR  "${CMAKE_BINARY_DIR}/dist")
 set(UNECT_PLUGIN_SUBDIR "Runtime/Plugins/x86_64")
 
@@ -12,8 +13,10 @@ add_custom_target(unity-sync
     VERBATIM)
 
 # Packages the project into a tarball release.
+file(MAKE_DIRECTORY "${UNECT_PKG_WORK}")
+
 add_custom_target(unity-package
-    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/unity-package"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${UNECT_PKG_STAGE}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${UNECT_PKG_STAGE}"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${UNECT_PKG_SRC}" "${UNECT_PKG_STAGE}"
 
@@ -28,10 +31,10 @@ add_custom_target(unity-package
     COMMAND ${CMAKE_COMMAND} -E make_directory "${UNECT_DIST_DIR}"
     COMMAND ${CMAKE_COMMAND} -E tar czf "${UNECT_DIST_DIR}/${UNECT_PACKAGE_NAME}-${UNECT_PACKAGE_VERSION}.tgz" -- package
 
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/unity-package"
+    WORKING_DIRECTORY "${UNECT_PKG_WORK}"
 
     DEPENDS libunect
-    COMMENT "Packing ${LIBUNECT_PACKAGE_NAME}-${LIBUNECT_PACKAGE_VERSION}.tgz.."
+    COMMENT "Packing ${UNECT_PACKAGE_NAME}-${UNECT_PACKAGE_VERSION}.tgz into '${UNECT_DIST_DIR}'..."
     VERBATIM)
 
 # Package debug symbols.

@@ -46,5 +46,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 if (MSVC)
-    target_link_options(libunect PRIVATE $<$<CONFIG:Release,RelWithDebInfo>:/OPT:REF /OPT:ICF>)
+    target_compile_options(libunect PRIVATE $<$<CONFIG:Release>:/Zi>)
+    target_link_options(libunect PRIVATE $<$<CONFIG:Release,RelWithDebInfo>:/OPT:REF /OPT:ICF /DEBUG>)
 endif (MSVC)
