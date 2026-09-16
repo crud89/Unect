@@ -33,7 +33,7 @@ namespace Unect
         MappingChanged = 4,
 
         /// <summary>
-        /// Indicates that a streaming error occured.
+        /// Indicates that a streaming error occurred.
         /// </summary>
         StreamError = 5
 

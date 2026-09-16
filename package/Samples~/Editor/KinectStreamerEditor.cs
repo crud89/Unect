@@ -15,11 +15,11 @@ public class KinectStreamerEditor : UnityEditor.Editor
     /// </summary>
     /// <param name="session">The session for which to obtain the sensor state label.</param>
     /// <returns>A string that prints the sensor state.</returns>
-    private static string GetSensorLabel(UnectSession session)
+    private static string GetSensorLabel(UnectSession session) 
         => session is null || !session.IsValid ? "No session" : session.SensorState.ToString();
 
     /// <inheritdoc />
-    public override bool RequiresConstantRepaint()
+    public override bool RequiresConstantRepaint() 
         => Application.isPlaying;
 
     /// <inheritdoc />

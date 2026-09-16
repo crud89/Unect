@@ -108,10 +108,14 @@ namespace Unect.Editor
                 return;
 
             var width = EditorGUIUtility.currentViewWidth - padding;
-            var rect = GUILayoutUtility.GetRect(width, width * tex.height / tex.width, GUILayout.ExpandWidth(false));
+            var rect = GUILayoutUtility.GetRect(width, width * Convert.ToSingle(tex.height) / Convert.ToSingle(tex.width), GUILayout.ExpandWidth(false));
             var mat = MaterialFor(texture);
 
+            // Vertically flip the image before drawing.
+            var currentTransform = GUI.matrix;
+            GUIUtility.ScaleAroundPivot(new UnityEngine.Vector2(1f, -1f), rect.center);
             EditorGUI.DrawPreviewTexture(rect, tex, mat, ScaleMode.ScaleToFit);
+            GUI.matrix = currentTransform;
         }
 
     }

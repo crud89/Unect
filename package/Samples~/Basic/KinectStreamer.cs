@@ -1,7 +1,6 @@
 using Unect;
 using Unect.Helper;
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
 /// Implements a basic streamer that pulls color and depth images from the Kinect sensor through the Unect runtime.
@@ -83,6 +82,7 @@ public class KinectStreamer : MonoBehaviour
         if (session is null || !session.IsValid)
             return;
 
+        // Update the textures.
         depthTexture.Update();
         colorTexture.Update();
     }
