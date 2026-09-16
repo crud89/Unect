@@ -428,8 +428,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# Include package meta files
+# Include package meta and sample files
 !package/**/*.meta
+!package/*~/
 
 *.dll
 *.pdb
