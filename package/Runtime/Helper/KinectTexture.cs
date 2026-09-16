@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 namespace Unect.Helper
@@ -94,7 +95,7 @@ namespace Unect.Helper
         /// </summary>
         /// <param name="session">The session from which the texture is fetched.</param>
         /// <param name="stream">The stream from which the texture is obtained.</param>
-        /// <param name="colorFormat">The color format of the texture (ignored if <paramref name="stream" /> is <see cref="StreamIndex.Depth" />).</param>
+        /// <param name="colorFormat">The color format of the texture (ignored if <paramref name="stream" /> is <see cref="StreamIndex.Color" />).</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the <paramref name="stream" /> is out of range.</exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="stream" /> equals <see cref="StreamIndex.Body" />.</exception>
         public KinectTexture(UnectSession session, StreamIndex stream, TextureFormat colorFormat = TextureFormat.BGRA32)
@@ -107,7 +108,7 @@ namespace Unect.Helper
 
             // Get the stream info and create the texture.
             var info = session.GetStreamInfo(stream);
-            texture = new Texture2D(info.width, info.height, stream == StreamIndex.Depth ? TextureFormat.R16 : colorFormat, false);
+            texture = new Texture2D(info.width, info.height, GetTextureFormat(stream, colorFormat), false);
 
             // Store the session.
             this.session = session;
@@ -130,6 +131,21 @@ namespace Unect.Helper
             session = null;
             texture = null;
         }
+
+        /// <summary>
+        /// Returns the texture format for a texture from a stream indicated by <paramref name="stream" />.
+        /// </summary>
+        /// <param name="stream">The stream for which to obtain the texture format.</param>
+        /// <param name="colorFormat">The format used for a stream of type <see cref="StreamIndex.Color" />.</param>
+        /// <returns>The texture format for the provided stream.</returns>
+        /// <exception cref="NotSupportedException">Thrown if <paramref name="stream" /> does not indicate an image stream.</exception>
+        private TextureFormat GetTextureFormat(StreamIndex stream, TextureFormat colorFormat) => stream switch {
+            StreamIndex.Color => colorFormat,
+            StreamIndex.Depth => TextureFormat.R16,
+            StreamIndex.Infrared or StreamIndex.LongExposureIR => TextureFormat.R16,
+            StreamIndex.BodyIndex => TextureFormat.R8,
+            _ => throw new NotSupportedException()
+        };
 
         /// <summary>
         /// Updates the texture by fetching it from the underlying stream.
