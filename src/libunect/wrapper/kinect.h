@@ -47,7 +47,7 @@ static inline Body ConvertFrom(IBody* body) {
     BOOLEAN tracked{ FALSE };
     body->get_IsTracked(&tracked);
 
-    if (b.isTracked = static_cast<bool>(tracked); !b.isTracked)
+    if (b.isTracked = tracked ? 1 : 0; b.isTracked == 0)
         return {};
 
     body->get_TrackingId(&b.trackingId);
@@ -77,7 +77,7 @@ static inline Body ConvertFrom(IBody* body) {
 
     BOOLEAN restricted = FALSE;
     body->get_IsRestricted(&restricted);
-    b.isRestricted = static_cast<bool>(restricted);
+    b.isRestricted = restricted ? 1 : 0;
 
     ::Joint kinectJoints[JointType_Count]{};
     ::JointOrientation kinectJointOrientations[JointType_Count]{};

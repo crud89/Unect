@@ -46,6 +46,11 @@ struct Body final {
     /// Stores the tracking body ID.
     /// </summary>
     uint64_t trackingId{};
+
+    /// <summary>
+    /// Stores the tracking state of the body (`0` if the body isn't tracked and some other value otherwise).
+    /// </summary>
+    int32_t isTracked{};
     
     /// <summary>
     /// Stores the edge clipping mask.
@@ -83,14 +88,9 @@ struct Body final {
     UnectVector2 lean{};
 
     /// <summary>
-    /// Stores the tracking state of the body.
+    /// Stores the restricted state of the body (`0` if the body isn't tracked and some other value otherwise).
     /// </summary>
-    bool isTracked{};
-
-    /// <summary>
-    /// Stores the restricted state of the body.
-    /// </summary>
-    bool isRestricted{};
+    int32_t isRestricted{};
 
     /// <summary>
     /// Stores the joints of the body.

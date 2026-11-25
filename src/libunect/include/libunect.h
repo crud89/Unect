@@ -20,7 +20,7 @@ extern "C" {
     /// <summary>
     /// Stores the ABI version (used during development to check if a library should be reloaded).
     /// </summary>
-    constexpr static int32_t UNECT_ABI_VERSION = 1;
+    constexpr static int32_t UNECT_ABI_VERSION = 2;
 
     /// <summary>
     /// Returns the current ABI version.

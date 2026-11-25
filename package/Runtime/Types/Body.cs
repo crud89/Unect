@@ -43,14 +43,14 @@ namespace Unect
         public HandState handLeftState;
 
         /// <summary>
-        /// Stores the state of the right hand.
-        /// </summary>
-        public HandState handRightState;
-
-        /// <summary>
         /// Stores the pose confidence for the left hand.
         /// </summary>
         public Confidence handLeftConfidence;
+
+        /// <summary>
+        /// Stores the state of the right hand.
+        /// </summary>
+        public HandState handRightState;
 
         /// <summary>
         /// Stores the pose confidence for the right hand.

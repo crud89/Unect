@@ -53,7 +53,7 @@ struct Frame final {
     /// <summary>
     /// Stores the number of tracked bodies in a body stream.
     /// </summary>
-    int32_t bodyCount{};
+    int32_t trackedBodyCount{};
 
 };
 
@@ -502,7 +502,7 @@ private:
                 return;
 
             // Store the current timestamp, get the body data and swap the back buffer of the stream.
-            auto timestamp = Clock::now();
+            timestamp = Clock::now();
 
             struct BodyData final {
                 IBody* raw[BODY_COUNT] = {};
@@ -524,7 +524,7 @@ private:
             if (FAILED(frame->GetAndRefreshBodyData(BODY_COUNT, bodyData.raw)))
                 return;
 
-            auto frameIndex = stream.SwapBackBuffer();
+            frameIndex = stream.SwapBackBuffer();
 
             if (frameIndex < 0)
                 return;
@@ -554,7 +554,7 @@ private:
             Vector4 floor{};
             frame->get_FloorClipPlane(&floor);
             frameRef.floorClipPlane = { floor.x, floor.y, floor.z, floor.w };
-            frameRef.bodyCount = trackedBodies;
+            frameRef.trackedBodyCount = trackedBodies;
 
             // Compute the timestamp and generation.
             TIMESPAN rt = 0;
